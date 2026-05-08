@@ -1,7 +1,6 @@
 import base58 from "bs58";
 import elliptic_pkg from 'elliptic';
 import { hash_tobuf, hash_tostr, type PubKey } from "./utils.js";
-import { serialize_tx, toJSON } from "./utils.js";
 import type { Tx } from "./interfaces.js";
 
 
@@ -14,10 +13,10 @@ class Transaction implements Tx {
     sender: PubKey;
     recipient: PubKey;
     fee: number;
-    tx_id: string;
-    signature: string;
-    nonce: number;
     timestamp: number;
+    tx_id: string;
+    nonce: number;
+    signature: string;
 
     constructor(
         amount: number,
@@ -25,8 +24,8 @@ class Transaction implements Tx {
         recipient: PubKey,
         fee: number,
         timestamp: number,
-        signature: string,
         nonce: number,
+        signature: string,
     ) {
         this.amount = amount;
         this.sender = sender;
@@ -39,7 +38,7 @@ class Transaction implements Tx {
     }
 
     private get_signing_data(): string {
-        return toJSON(serialize_tx(this));
+        return `${this.amount}${this.sender}${this.recipient}${this.fee}${this.nonce}${this.timestamp}`;
     }
 
     private compute_tx_id(): string {
@@ -65,7 +64,7 @@ class Transaction implements Tx {
 
             return this;
         } catch (err) {
-            throw new Error('Unable to sign transaction from tx-class');
+            throw new Error('Transaction signing failed');
         }
     }
 }

@@ -33,25 +33,6 @@ export function hash_tostr(data_str: string): string {
     return hashed_data;
 }
 
-// Serializes a Transaction object into a plain JavaScript object or JSON string
-export function serialize_tx(tx: Transaction): Record<string, any> {
-    const obj: Record<string, any> = {
-        amount: tx.amount,
-        sender: tx.sender,
-        recipient: tx.recipient,
-        fee: tx.fee,
-        timestamp: tx.timestamp,
-        nonce: tx.nonce,
-        signature: tx.signature
-    };
-
-    return obj;
-}
-
-export function toJSON(obj: Record<string, any>): string {
-    return JSON.stringify(obj);
-}
-
 export const print = (...data: any): void => {
     console.dir(...data, { depth: null, colors: true });
 }
