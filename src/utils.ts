@@ -1,4 +1,8 @@
 import * as crypto from 'crypto';
+import Transaction from './transaction.js';
+
+export type PubKey = string;
+export type PrivKey = string;
 
 // Take a buffer as input an return a buffer as output
 function hash_func(data_buf: Buffer): Buffer {

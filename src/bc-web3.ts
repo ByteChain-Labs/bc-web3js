@@ -1,10 +1,11 @@
-import { Block, Transaction } from "./interfaces.js";
+import type { PubKey, PrivKey } from "./utils.js";
+import type { BlockHeader, BlockInterface } from "./interfaces.js";
 import Account from "./account.js";
 import Provider from "./provider.js";
 import Wallet from "./wallet.js";
 
 
-class BCWeb3 {
+export default class BCWeb3 {
     provider: Provider;
     wallet!: Wallet;
 
@@ -12,41 +13,54 @@ class BCWeb3 {
         this.provider = new Provider(node_url);
     }
 
-    async getBalance(address: string): Promise<number> {
-        return await this.provider.check_balance(address);
-    }
-
-    async getNonce(address: string): Promise<number> {
-        return await this.provider.check_nonce(address);
-    }
-
     createAccount() {
-        this.wallet = new Wallet(new Account());
+        let new_account = Account.new();
+        this.wallet = new Wallet(new_account.priv_key);
     }
 
-    importAccount(privKey: string) {
-        this.wallet = new Wallet(new Account(privKey));
+    importAccount(privKey: PrivKey) {
+        let imported_account = Account.new(privKey);
+        this.wallet = new Wallet(imported_account.priv_key);
     }
 
-    async getTxPool(): Promise<Transaction[]> {
-        const transactionPool = await this.provider.get_tx_pool();
-        return [...transactionPool];
+    async getBalance(): Promise<number> {
+        return await this.provider.check_balance(this.wallet.account.pub_key);
     }
 
-    async getBlock(block_id: number): Promise<Block>  {
-        const block = await this.provider.get_block(block_id);
-        return block;
+    async getNonce(): Promise<number> {
+        return await this.provider.check_nonce(this.wallet.account.pub_key);
     }
 
-    async getChain(): Promise<Block[]>  {
+    async getLatestBlock(): Promise<BlockInterface>  {
+        return await this.provider.get_latest_block();
+    }
+
+    async getBlock(block_id: number): Promise<BlockInterface>  {
+        return await this.provider.get_block(block_id);
+    }
+
+    async getBlocksInRange(start_num: number, end_num: number): Promise<BlockInterface[]> {
+        const blocks = await this.provider.get_blocks_in_range(start_num, end_num);
+        return [...blocks];
+    }
+
+    async getChain(): Promise<BlockInterface[]>  {
         const chain = await this.provider.get_chain();
         return [...chain];
     }
 
-    async transfer(amount: number, recipient: string): Promise<string> {
+    async transfer(amount: number, recipient: PubKey): Promise<string> {
         const transferResult = await this.wallet.send_byte(this.provider, amount, recipient);
         return transferResult;
     }
 }
 
-export default BCWeb3;
+export type {
+    PubKey,
+    PrivKey,
+    BlockHeader
+}
+
+export {
+    Account
+};

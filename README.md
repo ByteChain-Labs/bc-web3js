@@ -63,7 +63,7 @@ bcWeb3.createAccount();
 
 console.log('--- New Account Created ---');
 
-console.log('Address:', bcWeb3.wallet.account.blockchain_addr);
+console.log('Address:', bcWeb3.wallet.account.pub_key);
 
 
 // 2. Load an existing account using its private key
@@ -74,7 +74,7 @@ const existingPrivateKey = 'YOUR_EXISTING_PRIVATE_KEY_HEX_HERE';
 
 bcWeb3.loadAccount(existingPrivateKey);
 
-const senderAddress = bcWeb3.wallet.account.blockchain_addr;
+const senderAddress = bcWeb3.wallet.account.pub_key;
 
 console.log('\n--- Loaded Account ---');
 
@@ -124,5 +124,24 @@ console.log(`\n--- Transaction Pool (${txPool.length} transactions) ---`);
 
 txPool.forEach(tx => {
     console.log(`- ID: ${tx.id}, From: ${tx.sender}, To: ${tx.recipient}, Amount: ${tx.amount}`);
+});
+
+// 3. Get the last block in the chain
+const lastBlock = bcWeb3.getLatestBlock();
+
+console.log('Block Hash:', lastBlock.block_header.block_hash);
+
+// 4. Get a range of blocks(e.g., blocks 0-20)
+const first20Blocks = bcWeb3.getBlocksInRange(0, 20);
+
+first20Blocks.forEach(block => {
+    console.log(`- Nonce: ${block.block_header.nonce}, Hash: ${block.block_header.block_hash}, Timestamp: ${block.block_header.timestamp}, Prev Hash: ${block.block_header.prev_block_hash}`);
+});
+
+// 5. Get the whole chain(e.g. blocks 0-the last block)
+const chain = bcWeb3.getChain();
+
+chain.forEach(block => {
+    console.log(`- Height: ${block.block_header.block_height}, Hash: ${block.block_header.block_hash}, Transactions: ${block.transactions.length}`);
 });
 ```

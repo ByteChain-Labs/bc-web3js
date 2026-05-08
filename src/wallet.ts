@@ -1,24 +1,26 @@
 import Account from "./account.js";
 import Provider from "./provider.js";
-import Tx from "./transaction.js";
-
+import Transaction from "./transaction.js";
+import type { PubKey, PrivKey } from "./utils.js";
 
 class Wallet {
-    constructor(
-        public account: Account,
-    ) {}
+    public account;
+    
+    constructor(priv_key: PrivKey,) {
+        this.account = new Account(priv_key)
+    }
 
-    async send_byte(provider: Provider, amount: number, recipient: string): Promise<string> {
+    async send_byte(provider: Provider, amount: number, recipient: PubKey): Promise<string> {
         try {
-            const { pub_key, blockchain_addr } = this.account;
-            const nonce = await provider.check_nonce(blockchain_addr);
+            const { pub_key } = this.account;
+            const nonce = await provider.check_nonce(pub_key);
             const fee = await provider.check_fee();
-            const tx = new Tx(amount, blockchain_addr, recipient, fee, Date.now(), pub_key, "", nonce + 1);
+            const tx = new Transaction(amount, pub_key, recipient, fee, Date.now(), nonce + 1, "");
             const signed_tx = this.account.sign_tx(tx);
         
             return provider.send_tx(signed_tx);
         } catch (err) {
-            throw new Error('Unable to sign transaction from account class');
+            throw new Error('Unable to sign transaction');
         }
     }
 }

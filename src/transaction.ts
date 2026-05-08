@@ -1,47 +1,44 @@
 import base58 from "bs58";
 import elliptic_pkg from 'elliptic';
-import { hash_tobuf, hash_tostr } from "./utils.js";
-import { Transaction } from "./interfaces.js";
+import { hash_tobuf, hash_tostr, type PubKey } from "./utils.js";
+import type { Tx } from "./interfaces.js";
 
 
 const  { ec: EC } = elliptic_pkg;
 const ec = new EC('secp256k1');
 
 
-class Tx implements Transaction {
+class Transaction implements Tx {
     amount: number;
-    sender: string;
-    recipient: string;
+    sender: PubKey;
+    recipient: PubKey;
     fee: number;
-    tx_id: string;
-    signature: string;
-    nonce: number;
     timestamp: number;
-    publicKey: string;
+    tx_id: string;
+    nonce: number;
+    signature: string;
 
     constructor(
         amount: number,
-        sender: string,
-        recipient: string,
+        sender: PubKey,
+        recipient: PubKey,
         fee: number,
         timestamp: number,
-        publicKey: string,
-        signature: string,
         nonce: number,
+        signature: string,
     ) {
         this.amount = amount;
         this.sender = sender;
         this.recipient = recipient;
         this.fee = fee;
-        this.timestamp = timestamp;
-        this.publicKey = publicKey;
-        this.signature = signature;
-        this.nonce = nonce;
         this.tx_id = this.compute_tx_id();
+        this.timestamp = timestamp;
+        this.nonce = nonce;
+        this.signature = signature;
     }
 
     private get_signing_data(): string {
-        return `${this.amount}${this.sender}${this.recipient}${this.fee}${this.publicKey}${this.nonce}${this.timestamp}`;        
+        return `${this.amount}${this.sender}${this.recipient}${this.fee}${this.nonce}${this.timestamp}`;
     }
 
     private compute_tx_id(): string {
@@ -51,7 +48,7 @@ class Tx implements Transaction {
         return id;
     }
 
-    sign_tx(priv_key: string): Tx {
+    sign_tx(priv_key: string): Transaction {
         try {
             const data_str = this.get_signing_data();
             
@@ -67,10 +64,10 @@ class Tx implements Transaction {
 
             return this;
         } catch (err) {
-            throw new Error('Unable to sign transaction from tx-class');
+            throw new Error('Transaction signing failed');
         }
     }
 }
 
 
-export default Tx;
+export default Transaction;
