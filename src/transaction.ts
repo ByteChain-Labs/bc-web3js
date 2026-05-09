@@ -1,11 +1,7 @@
-import base58 from "bs58";
-import elliptic_pkg from 'elliptic';
-import { hash_tobuf, hash_tostr, type PubKey } from "./utils.js";
+import { secp256k1 } from "@noble/curves/secp256k1.js";
+import { bytesToHex, hexToBytes } from "@noble/curves/utils.js";
+import { hash_tobuf, hash_tostr, type PrivKey, type PubKey } from "./utils.js";
 import type { Tx } from "./interfaces.js";
-
-
-const  { ec: EC } = elliptic_pkg;
-const ec = new EC('secp256k1');
 
 
 class Transaction implements Tx {
@@ -48,19 +44,14 @@ class Transaction implements Tx {
         return id;
     }
 
-    sign_tx(priv_key: string): Transaction {
+    sign_tx(priv_key: PrivKey): Transaction {
         try {
             const data_str = this.get_signing_data();
             
             const hashed_tx = hash_tobuf(data_str);
-            const key_pair = ec.keyFromPrivate(priv_key, 'hex');
-            const sig = key_pair.sign(hashed_tx, 'hex');
-            const r = sig.r.toArrayLike(Buffer, 'be', 32);
-            const s = sig.s.toArrayLike(Buffer, 'be', 32);
-            const compact_sig = Buffer.concat([r, s]);
-            const sign = base58.encode(compact_sig);
+            const sign = secp256k1.sign(hashed_tx, hexToBytes(priv_key));
 
-            this.signature = sign;
+            this.signature = bytesToHex(sign);
 
             return this;
         } catch (err) {
