@@ -12,15 +12,14 @@ class Wallet {
 
     async send_byte(provider: Provider, amount: number, recipient: PubKey): Promise<string> {
         try {
-            const { pub_key } = this.account;
-            const nonce = await provider.check_nonce(pub_key);
+            const nonce = await provider.check_nonce(this.account.pub_key);
             const fee = await provider.check_fee();
-            const tx = new Transaction(amount, pub_key, recipient, fee, Date.now(), nonce + 1, "");
+            const tx = new Transaction(amount, this.account.pub_key, recipient, fee, Date.now(), nonce + 1, "");
             const signed_tx = this.account.sign_tx(tx);
         
             return provider.send_tx(signed_tx);
         } catch (err) {
-            throw new Error('Unable to sign transaction');
+            throw new Error('Unable to send');
         }
     }
 }

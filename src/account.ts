@@ -1,19 +1,18 @@
-import { Buffer } from 'buffer';
-import elliptic_pkg from 'elliptic';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { bytesToHex, hexToBytes } from '@noble/curves/utils.js';
 import Transaction from './transaction.js';
 import type { PubKey, PrivKey } from './utils.js';
 
-const { ec: EC } = elliptic_pkg;
-const ec = new EC('secp256k1');
+
 
 
 class Account {
-    private priv_key: Buffer;
+    private priv_key: PrivKey;
     public  pub_key: PubKey;
 
     constructor(priv_key?: PrivKey) {
-        this.priv_key = Buffer.from(Account.new(priv_key).priv_key, 'hex');
-        this.pub_key = Account.create_pub_key(this.priv_key.toString('hex'));
+        this.priv_key = Account.new(priv_key).priv_key;
+        this.pub_key = Account.create_pub_key(this.priv_key);
     }
 
     static is_valid_priv_key(priv_key: PrivKey): boolean {
@@ -30,7 +29,7 @@ class Account {
             priv_key = privKey;
         }
         else {
-            priv_key = ec.genKeyPair().getPrivate('hex');
+            priv_key = bytesToHex(secp256k1.keygen().secretKey);
         }
 
         const pub_key = Account.create_pub_key(priv_key);
@@ -39,13 +38,11 @@ class Account {
 
     // Generates the public key from a private key
     static create_pub_key(priv_key: PrivKey): PubKey {
-        const key_pair = ec.keyFromPrivate(priv_key);
-        const pub_key = key_pair.getPublic(true, 'hex');
-        return pub_key;
+        return bytesToHex(secp256k1.getPublicKey(hexToBytes(priv_key), true));
     }
 
     sign_tx(tx: Transaction): Transaction {
-        return tx.sign_tx(this.priv_key.toString('hex'));
+        return tx.sign_tx(this.priv_key);
     }
 }
 
